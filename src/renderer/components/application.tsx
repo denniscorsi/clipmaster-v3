@@ -26,7 +26,12 @@ const Application = () => {
           />
         ))}
       </section>
-      <CopyFromClipboard />
+      <CopyFromClipboard
+        onClick={async () => {
+          const content: string = await window.api.readFromClipboard();
+          addClipping(content);
+        }}
+      />
     </main>
   );
 };

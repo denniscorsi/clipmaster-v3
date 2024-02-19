@@ -9,7 +9,9 @@ const Clipping = ({
   value,
   id,
   onRemove,
-  onCopy = () => {},
+  onCopy = (content: string) => {
+    window.api.writeToClipboard(content);
+  },
   ...props
 }: ClippingProps) => {
   return (
