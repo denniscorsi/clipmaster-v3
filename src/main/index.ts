@@ -6,7 +6,12 @@ import {
   ipcMain,
   globalShortcut,
   Notification,
+  Tray,
+  Menu,
 } from 'electron';
+import Positioner from 'electron-positioner';
+
+let tray: Tray | null = null;
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -19,6 +24,7 @@ const createWindow = () => {
     maximizable: false,
     titleBarStyle: 'hidden',
     titleBarOverlay: true,
+    show: false,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
     },
@@ -32,13 +38,29 @@ const createWindow = () => {
     );
   }
 
-  mainWindow.webContents.openDevTools({ mode: 'detach' });
+  // mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   return mainWindow;
 };
 
 app.on('ready', () => {
   const mainWindow = createWindow();
+  tray = new Tray('./src/icons/trayTemplate.png');
+
+  const positioner = new Positioner(mainWindow);
+
+  tray.on('click', () => {
+    if (!tray) return;
+    if (mainWindow.isVisible()) {
+      return mainWindow.hide();
+    }
+
+    const trayPosition = positioner.calculate('trayCenter', tray.getBounds());
+    mainWindow.setPosition(trayPosition.x, trayPosition.y, false);
+
+    mainWindow.show();
+  });
+
   globalShortcut.register('CommandOrControl+Option+Shift+C', () => {
     app.focus();
     mainWindow.show();
@@ -53,6 +75,23 @@ app.on('ready', () => {
       body: content,
     }).show();
   });
+
+  // const contextMenu = Menu.buildFromTemplate([
+  //   {
+  //     label: 'Show Window',
+  //     click: () => {
+  //       mainWindow.show();
+  //       mainWindow.focus();
+  //     },
+  //   },
+  //   {
+  //     label: 'Quit',
+  //     role: 'quit',
+  //   },
+  // ]);
+
+  // tray = new Tray('./src/icons/trayTemplate.png');
+  // tray.setContextMenu(contextMenu);
 });
 
 app.on('quit', globalShortcut.unregisterAll);
